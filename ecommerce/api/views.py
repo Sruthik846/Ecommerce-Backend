@@ -68,13 +68,19 @@ class LoginAPIView(APIView):
             if user is not None:
                 login(request, user)
                 print(f"logged successfully {user}")
-                return Response({'username':username,'password':password},status=status.HTTP_200_OK)
-            
+                return Response({'login':True},status=status.HTTP_200_OK)
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-        
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
 
+@permission_classes([IsAuthenticated])
+class LogoutAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+    def get(self, request):
+        logout(request)
+        return Response({'message':'Logged out successfully'})
+    
 
 @permission_classes([IsAuthenticated])
 class ProductAPIView(APIView):
@@ -117,7 +123,29 @@ class DeleteProductAPIView(APIView):
     def delete(self,request,id):
         Product.objects.get(id=id).delete()
         return Response(status=status.HTTP_200_OK)
+    
 
+@permission_classes([IsAuthenticated])
+class ProductEditAPIView(APIView):
+    serializer_class = ProductSerializer
+    permission_classes = (IsAuthenticated,)
+    def put(self, request):
+        try:
+            obj = Product.objects.get(pk=request.data['id'])
+        except Product.DoesNotExist:
+            obj = None
+
+        serializer = ProductSerializer(instance=obj, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            print("-------------- product edited ")
+            return Response({'Success':'product Edited'},status=status.HTTP_200_OK)
         
+        else:
+            print('error',serializer.errors)
+            return Response({'error':serializer.errors},status=500)
+
+### Payment gateway #############################
+
 
 
