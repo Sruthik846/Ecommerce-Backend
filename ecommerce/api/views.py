@@ -52,6 +52,7 @@ class LoginAPIView(APIView):
     serializer_class = LoginSerializer
     permission_classes = (IsAuthenticated,)
     def post(self, request):
+        print(request.data)
         serializer = self.serializer_class(data=request.data)
         
         if serializer.is_valid():
@@ -88,15 +89,45 @@ class ProductAPIView(APIView):
     permission_classes = (IsAuthenticated,)
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
-        # print(request.data)
-        if serializer.is_valid():
-            serializer.save()
-            print("product added")
-            return Response({'Success':'product added'},status=status.HTTP_200_OK)
+        print(request.data)
+
+        pname = request.data.get('pname')
+        price = request.data.get('price')
+        desc = request.data.get('description')
+        status = request.data.get('status')
+        quantity = request.data.get('quantity')
+        category = request.data.get('category')
+        images = request.data.getlist('files')
+
+        print(pname,price,desc,status,quantity,category,images)
+        productData = Product(pname=pname,price=price,description=desc,status=status,quantity=quantity,category = category,image1= images[0],image2=images[1],image3=images[2],image4=images[3])
+        productData.save()
+
+        print('half saved')
+        imagesdata = ProductImages(product=productData,image1= images[0],image2=images[1],image3=images[2],image4=images[3])
+        # imagesdata =ProductImages.objects.create(product=productData,image1= images[0],image2=images[1],image3=images[2],image4=images[3])
+        imagesdata.save()
+        return Response({'success':'Product added'})
+       
+        # if serializer.is_valid():
+        #     for image in images:
+                
+        #         print("product added")
+        #         return Response({'Success':'product added'},status=status.HTTP_200_OK)
+            
+        # else:
+        #     print('error',serializer.errors)
+        #     return Response({'error':serializer.errors},status=500)
+
+
+        # if serializer.is_valid():
+        #     serializer.save()
+        #     print("product added")
+        #     return Response({'Success':'product added'},status=status.HTTP_200_OK)
         
-        else:
-            print('error',serializer.errors)
-            return Response({'error':serializer.errors},status=500)
+        # else:
+        #     print('error',serializer.errors)
+        #     return Response({'error':serializer.errors},status=500)
 
 @permission_classes([IsAuthenticated])
 class ProductListAPIView(APIView):
@@ -107,11 +138,29 @@ class ProductListAPIView(APIView):
         productData = Product.objects.all()
         productLatest = Product.objects.order_by('id')[:4]
         electronicProducts = Product.objects.filter(category='Electronics')
+        menProducts = Product.objects.filter(category='Men')
+        womenProducts = Product.objects.filter(category='Women')
+        babykidsProducts = Product.objects.filter(category='Baby & Kids')
+        homeProducts = Product.objects.filter(category='Home & furniture')
+        sportsProducts = Product.objects.filter(category='Sports')
+        bookProducts = Product.objects.filter(category='Books')
+        jwelleryProducts = Product.objects.filter(category='Jwellery')
+        otherProducts = Product.objects.filter(category='Others')
         if productData:
             serializer = ProductSerializer(productData, many=True)
             serializerLatest = ProductSerializer(productLatest, many=True)
             serializerElectronics = ProductSerializer(electronicProducts, many=True)
-            return Response({'All': serializer.data, 'Latest': serializerLatest.data,'Electronics':serializerElectronics.data},status=status.HTTP_200_OK)
+            serializerMen = ProductSerializer(menProducts, many=True)
+            serializerWomen = ProductSerializer(womenProducts, many=True)
+            serializerBabykids = ProductSerializer(babykidsProducts, many=True)
+            serializerHome = ProductSerializer(homeProducts, many=True)
+            serializerSports = ProductSerializer(sportsProducts, many=True)
+            serializerBook = ProductSerializer(bookProducts, many=True)
+            serializerjwellery = ProductSerializer(jwelleryProducts, many=True)
+            serializerOthers = ProductSerializer(otherProducts, many=True)
+            return Response({'All': serializer.data, 'Latest': serializerLatest.data,'Electronics':serializerElectronics.data,'men':serializerMen.data,'women':serializerWomen.data,
+                            'babyKids':serializerBabykids.data,'home':serializerHome.data,'sports':serializerSports.data,'book':serializerBook.data,'jwellery':serializerjwellery.data,
+                            'others':serializerOthers.data},status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -145,7 +194,13 @@ class ProductEditAPIView(APIView):
             print('error',serializer.errors)
             return Response({'error':serializer.errors},status=500)
 
-### Payment gateway #############################
+@permission_classes([IsAuthenticated])
+class CartAPIView(APIView):
+    serializer_class = CartSerializer
+    permission_classes = (IsAuthenticated,)
+    def get(self, request):
+        print(request)
+        return Response({'success':'cart added'})
 
 
 

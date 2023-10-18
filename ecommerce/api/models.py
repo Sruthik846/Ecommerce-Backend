@@ -19,4 +19,19 @@ class Product(models.Model):
     status = models.CharField(max_length=50 , null=True)
     quantity = models.CharField(max_length=50 , null=True)
     category = models.CharField(max_length=100, null=True)
-    imgUrl = models.ImageField(upload_to='products/', blank=True, null=True)
+    # imgUrl = models.ImageField(upload_to='products/', blank=True, null=True)
+    image1 = models.ImageField(upload_to='images/',blank=True, null=True)
+    image2 = models.ImageField(upload_to='images/',blank=True, null=True)
+    image3 = models.ImageField(upload_to='images/',blank=True, null=True)
+    image4 = models.ImageField(upload_to='images/',blank=True, null=True)
+
+
+class ProductImages(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    image1 = models.ImageField(upload_to='images/',blank=True, null=True)
+    image2 = models.ImageField(upload_to='images/',blank=True, null=True)
+    image3 = models.ImageField(upload_to='images/',blank=True, null=True)
+    image4 = models.ImageField(upload_to='images/',blank=True, null=True)
+
+class Cart(models.Model):
+    pname = models.CharField(max_length=50 , null=True)
