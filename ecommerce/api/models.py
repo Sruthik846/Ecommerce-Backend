@@ -26,12 +26,10 @@ class Product(models.Model):
     image4 = models.ImageField(upload_to='images/',blank=True, null=True)
 
 
-class ProductImages(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    image1 = models.ImageField(upload_to='images/',blank=True, null=True)
-    image2 = models.ImageField(upload_to='images/',blank=True, null=True)
-    image3 = models.ImageField(upload_to='images/',blank=True, null=True)
-    image4 = models.ImageField(upload_to='images/',blank=True, null=True)
-
 class Cart(models.Model):
-    pname = models.CharField(max_length=50 , null=True)
+    name = models.CharField(max_length=50 , null=True)
+    quantity = models.CharField(max_length=50 , null=True)
+    selectedQuantity = models.CharField(max_length=50 , null=True)
+    price = models.CharField(max_length=50 , null=True)
+    total = models.CharField(max_length=500 , null=True)
+    image = models.ImageField(upload_to='cart/',blank=True, null=True)

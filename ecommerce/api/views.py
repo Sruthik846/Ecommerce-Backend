@@ -103,31 +103,7 @@ class ProductAPIView(APIView):
         productData = Product(pname=pname,price=price,description=desc,status=status,quantity=quantity,category = category,image1= images[0],image2=images[1],image3=images[2],image4=images[3])
         productData.save()
 
-        print('half saved')
-        imagesdata = ProductImages(product=productData,image1= images[0],image2=images[1],image3=images[2],image4=images[3])
-        # imagesdata =ProductImages.objects.create(product=productData,image1= images[0],image2=images[1],image3=images[2],image4=images[3])
-        imagesdata.save()
         return Response({'success':'Product added'})
-       
-        # if serializer.is_valid():
-        #     for image in images:
-                
-        #         print("product added")
-        #         return Response({'Success':'product added'},status=status.HTTP_200_OK)
-            
-        # else:
-        #     print('error',serializer.errors)
-        #     return Response({'error':serializer.errors},status=500)
-
-
-        # if serializer.is_valid():
-        #     serializer.save()
-        #     print("product added")
-        #     return Response({'Success':'product added'},status=status.HTTP_200_OK)
-        
-        # else:
-        #     print('error',serializer.errors)
-        #     return Response({'error':serializer.errors},status=500)
 
 @permission_classes([IsAuthenticated])
 class ProductListAPIView(APIView):
@@ -198,9 +174,64 @@ class ProductEditAPIView(APIView):
 class CartAPIView(APIView):
     serializer_class = CartSerializer
     permission_classes = (IsAuthenticated,)
-    def get(self, request):
-        print(request)
-        return Response({'success':'cart added'})
+    def post(self, request):
+        print(request.data)
+        cartdata = request.data
+        
+        organized_data = []
+
+        # Loop through the dictionary
+        index = 0  # Initialize the index
+        item = {}  # Initialize an item dictionary
+        for key, value in cartdata.items():
+            # Extract the index and field from the key
+            parts = key.split('[')
+            current_index = int(parts[0])
+            field = parts[1][:-1]  # Remove the trailing ']'
+
+            # If the index changes, start a new item
+            if current_index != index:
+                if item:
+                    organized_data.append(item)
+                item = {}
+                index = current_index
+
+            item[field] = value
+
+        # Add the last item to the organized_data
+        if item:
+            organized_data.append(item)
+
+        # Now you have the data organized into a list of dictionaries
+        for item in organized_data:
+            if (Cart.objects.filter(name=item['name'])):
+                pdata = Cart.objects.get(name=item['name'])
+                pdata.selectedQuantity = item['selectedQuantity']
+                pdata.total = item['total']
+                pdata.save()
+            else :
+                image = (item['url']).split('media/')[1]
+                Cart(name= item['name'],quantity = item['quantity'],price = item['price'],total = item['total'],image =image,selectedQuantity =item['selectedQuantity']).save()
+                
+
+        return Response({'success':'cart added'},status=status.HTTP_200_OK)
+    
+
+    def get(self,request):
+        # print(request.user)
+        cartData = Cart.objects.all()
+        if cartData:
+            serializer = CartSerializer(cartData, many=True)
+            # print(serializer.data)
+            return Response(serializer.data,status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+
+    def delete(self,request,id):
+        print(id)
+        Cart.objects.get(name=id).delete()
+        return Response({'success':'Product deleted successfully'},status=status.HTTP_200_OK)
 
 
 
