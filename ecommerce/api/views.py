@@ -163,7 +163,7 @@ class ProductEditAPIView(APIView):
         serializer = ProductSerializer(instance=obj, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            print("-------------- product edited ")
+            print("-------------- product edited -------------")
             return Response({'Success':'product Edited'},status=status.HTTP_200_OK)
         
         else:
@@ -175,7 +175,7 @@ class CartAPIView(APIView):
     serializer_class = CartSerializer
     permission_classes = (IsAuthenticated,)
     def post(self, request):
-        print(request.data)
+        # print(request.data)
         cartdata = request.data
         
         organized_data = []
@@ -212,7 +212,7 @@ class CartAPIView(APIView):
             else :
                 image = (item['url']).split('media/')[1]
                 Cart(name= item['name'],quantity = item['quantity'],price = item['price'],total = item['total'],image =image,selectedQuantity =item['selectedQuantity']).save()
-                
+
 
         return Response({'success':'cart added'},status=status.HTTP_200_OK)
     
