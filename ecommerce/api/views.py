@@ -14,6 +14,11 @@ from django.contrib.auth import authenticate, login,logout
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.shortcuts import render, get_object_or_404
 
+from paypal.standard.forms import PayPalPaymentsForm
+from django.conf import settings
+import uuid
+from django.urls import reverse
+
 
 # Create your views here.
 
@@ -239,36 +244,9 @@ class CartAPIView(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
     
 
-@permission_classes([IsAuthenticated])
-class Track_Order_APIVIEW(APIView):
-    def post(request):
-        if request.method == "POST":
-            order_number = request.POST.get("order_number")
-            order = get_object_or_404(Order, order_number=order_number)
-            return Response({"order": order})
-        return Response( status=status.HTTP_400_BAD_REQUEST)
-    
-    def order_tracker(request):
-        if request.method=="POST":
-            orderId = request.POST.get('orderId', '')
-            print(orderId)
-            try:
-                order=Order.objects.filter(pk=orderId)
-                orderData = get_object_or_404(Order, order_number=order)
+            
 
-                if len(order)>0:
-                    update = Order.objects.filter(pk=orderId)
-                    updates = []
-                    for order in update:
-                        # change order status to scheduled
-                        if order.status == 'processing':
-                            order.status = 'scheduled'
-                            order.save()
-                        updates.append({'status' : order.status})
-                        response = json.dumps(updates)
-                        return Response(response)
-            except Exception as e:
-                return Response( status=status.HTTP_400_BAD_REQUEST)
+
 
 
 

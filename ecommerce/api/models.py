@@ -49,7 +49,5 @@ class Order(models.Model):
     price = models.CharField(max_length=50 , null=True)
     total = models.CharField(max_length=500 , null=True)
     
-
-
     def __str__(self):
         return self.order_number

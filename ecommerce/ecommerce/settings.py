@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'rest_framework.authtoken',
+    'paypal.standard.ipn',
 
 ]
 
@@ -155,14 +156,15 @@ MEDIA_ROOT =  os.path.join(BASE_DIR, 'media')
 # STATICFILES_DIRS = (
 #     os.path.join(BASE_DIR,'static'),
 # )
-    
-
 
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+PAYPAL_RECEIVER_EMAIL = 'sb-475ehj28008588@business.example.com' # where cash is paid into
+PAYPAL_TEST = True
 
 
 
