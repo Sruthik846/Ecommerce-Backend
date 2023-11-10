@@ -11,6 +11,9 @@ class UserDetails(models.Model):
     password = models.CharField(max_length=20, null=True)
     address = models.CharField(max_length=500, null=True)
 
+class Category(models.Model):
+    category = models.CharField(max_length=100, null=True)
+
 
 class Product(models.Model):
     pname = models.CharField(max_length=50 , null=True)
@@ -18,7 +21,7 @@ class Product(models.Model):
     description = models.CharField(max_length=500 , null=True)
     status = models.CharField(max_length=50 , null=True)
     quantity = models.CharField(max_length=50 , null=True)
-    category = models.CharField(max_length=100, null=True)
+    category = models.ForeignKey(Category,on_delete=models.SET_NULL,null=True,related_name='category_product')
     # imgUrl = models.ImageField(upload_to='products/', blank=True, null=True)
     image1 = models.ImageField(upload_to='images/',blank=True, null=True)
     image2 = models.ImageField(upload_to='images/',blank=True, null=True)
@@ -51,3 +54,8 @@ class Order(models.Model):
     
     def __str__(self):
         return self.order_number
+    
+class OrderUpdates(models.Model):
+    Order_id = models.ForeignKey(Order,on_delete=models.CASCADE, null=True)
+    order_desc = models.CharField(max_length=100)
+    
