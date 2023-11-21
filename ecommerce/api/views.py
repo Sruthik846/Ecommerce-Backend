@@ -1,4 +1,5 @@
 import json
+from django.http import JsonResponse
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -53,13 +54,12 @@ class Signup(APIView):
             return Response({'error':'Plz contact Admin!'},status=500)
         
 
-
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated]) 
 class LoginAPIView(APIView):
     serializer_class = LoginSerializer
     permission_classes = (IsAuthenticated,)
     def post(self, request):
-        print(request.data)
+        # print(request.data)
         serializer = self.serializer_class(data=request.data)
         
         if serializer.is_valid():
@@ -72,7 +72,7 @@ class LoginAPIView(APIView):
             print(username,password)
             # print(User.objects.get(password='12345'))
             user=authenticate(request,username=username,password=password)
-            print(user)
+            print('---------------------------------',user,'----------------------------------')
             if user is not None:
                 login(request, user)
                 print(f"logged successfully {user}")
@@ -87,8 +87,16 @@ class LogoutAPIView(APIView):
     permission_classes = (IsAuthenticated,)
     def get(self, request):
         logout(request)
+        print("Logged out successfully")
         return Response({'message':'Logged out successfully'})
     
+
+@permission_classes([IsAuthenticated])
+class CategoryAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+    def get(self, request):
+        categories = Category.objects.all().values('category', 'id') 
+        return JsonResponse({'categories': list(categories)})
 
 @permission_classes([IsAuthenticated])
 class ProductAPIView(APIView):
@@ -106,8 +114,11 @@ class ProductAPIView(APIView):
         category = request.data.get('category')
         images = request.data.getlist('files')
 
+        category_id = Category.objects.get(id=category)
+        print('------------ Category -----------------------',Category.objects.filter(id=category))
         print(pname,price,desc,status,quantity,category,images)
-        productData = Product(pname=pname,price=price,description=desc,status=status,quantity=quantity,category = category,image1= images[0],image2=images[1],image3=images[2],image4=images[3])
+        # category_id = Category.objects.create(category= category)
+        productData = Product(pname=pname,price=price,description=desc,status=status,quantity=quantity,category = category_id,image1= images[0],image2=images[1],image3=images[2],image4=images[3])
         productData.save()
 
         return Response({'success':'Product added'})
@@ -119,16 +130,18 @@ class ProductListAPIView(APIView):
 
     def get(self,request):
         productData = Product.objects.all()
+        print(productData)
         productLatest = Product.objects.order_by('id')[:4]
-        electronicProducts = Product.objects.filter(category='Electronics')
-        menProducts = Product.objects.filter(category='Men')
-        womenProducts = Product.objects.filter(category='Women')
-        babykidsProducts = Product.objects.filter(category='Baby & Kids')
-        homeProducts = Product.objects.filter(category='Home & furniture')
-        sportsProducts = Product.objects.filter(category='Sports')
-        bookProducts = Product.objects.filter(category='Books')
-        jwelleryProducts = Product.objects.filter(category='Jwellery')
-        otherProducts = Product.objects.filter(category='Others')
+        electronicProducts = Product.objects.filter(category=1)
+
+        menProducts = Product.objects.filter(category=2)
+        womenProducts = Product.objects.filter(category=3)
+        babykidsProducts = Product.objects.filter(category=4)
+        homeProducts = Product.objects.filter(category=5)
+        sportsProducts = Product.objects.filter(category=6)
+        bookProducts = Product.objects.filter(category=7)
+        jwelleryProducts = Product.objects.filter(category=8)
+        otherProducts = Product.objects.filter(category=9)
         if productData:
             serializer = ProductSerializer(productData, many=True)
             serializerLatest = ProductSerializer(productLatest, many=True)
@@ -182,9 +195,7 @@ class CartAPIView(APIView):
     serializer_class = CartSerializer
     permission_classes = (IsAuthenticated,)
     def post(self, request):
-        # print(request.data)
         cartdata = request.data
-        
         organized_data = []
 
         # Loop through the dictionary
@@ -211,16 +222,19 @@ class CartAPIView(APIView):
 
         # Now you have the data organized into a list of dictionaries
         for item in organized_data:
-            if (Cart.objects.filter(name=item['name'])):
-                pdata = Cart.objects.get(name=item['name'])
-                pdata.selectedQuantity = item['selectedQuantity']
-                pdata.total = item['total']
-                pdata.save()
-            else :
-                image = (item['url']).split('media/')[1]
-                Cart(name= item['name'],quantity = item['quantity'],price = item['price'],total = item['total'],image =image,selectedQuantity =item['selectedQuantity']).save()
-
-
+            username = item['user']
+            if (UserDetails.objects.filter(name=username)):
+                user_id = UserDetails.objects.get(name=username)
+                if (Cart.objects.filter(name=item['name'])):
+                    pdata = Cart.objects.get(name=item['name'])
+                    pdata.selectedQuantity = item['selectedQuantity']
+                    pdata.total = item['total']
+                    pdata.save()
+                else :
+                    image = (item['url']).split('media/')[1]
+                    Cart(name= item['name'], quantity= item['quantity'],price = item['price'],total = item['total'],image =image,selectedQuantity =item['selectedQuantity'],user=user_id).save()
+            else:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response({'success':'cart added'},status=status.HTTP_200_OK)
     
 
@@ -229,8 +243,17 @@ class CartAPIView(APIView):
         cartData = Cart.objects.all()
         if cartData:
             serializer = CartSerializer(cartData, many=True)
-            # print(serializer.data)
-            return Response(serializer.data,status=status.HTTP_200_OK)
+            product_data = [{
+                'name': product.name,
+                'quantity': product.quantity,
+                'selectedQuantity': product.selectedQuantity,
+                'price': product.price,
+                'total': product.total,
+                'image': product.image,
+                'user': product.user.name  # Assuming 'name' is the field in the UserDetails model
+            } for product in cartData]
+            # print(product_data,serializer.data)
+            return Response({'data':serializer.data},status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
