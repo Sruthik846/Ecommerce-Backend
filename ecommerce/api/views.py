@@ -63,9 +63,6 @@ class LoginAPIView(APIView):
         serializer = self.serializer_class(data=request.data)
         
         if serializer.is_valid():
-            # username = serializer.validated_data['username']
-            # password = serializer.validated_data['password']
-
             username = request.data['username']
             password = request.data['password']
 
@@ -225,6 +222,7 @@ class CartAPIView(APIView):
             username = item['user']
             if (UserDetails.objects.filter(name=username)):
                 user_id = UserDetails.objects.get(name=username)
+
                 if (Cart.objects.filter(name=item['name'])):
                     pdata = Cart.objects.get(name=item['name'])
                     pdata.selectedQuantity = item['selectedQuantity']
@@ -234,8 +232,9 @@ class CartAPIView(APIView):
                     image = (item['url']).split('media/')[1]
                     Cart(name= item['name'], quantity= item['quantity'],price = item['price'],total = item['total'],image =image,selectedQuantity =item['selectedQuantity'],user=user_id).save()
             else:
+                print("User does not exist!")
                 return Response(status=status.HTTP_400_BAD_REQUEST)
-        return Response({'success':'cart added'},status=status.HTTP_200_OK)
+        return Response({'success':'Product added to cart list'},status=status.HTTP_200_OK)
     
 
     def get(self,request):
@@ -252,8 +251,9 @@ class CartAPIView(APIView):
                 'image': product.image,
                 'user': product.user.name  # Assuming 'name' is the field in the UserDetails model
             } for product in cartData]
-            # print(product_data,serializer.data)
-            return Response({'data':serializer.data},status=status.HTTP_200_OK)
+
+            # print(serializer.data)
+            return Response(serializer.data,status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
