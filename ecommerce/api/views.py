@@ -101,7 +101,7 @@ class ProductAPIView(APIView):
     permission_classes = (IsAuthenticated,)
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
-        print(request.data)
+        # print(request.data)
 
         pname = request.data.get('pname')
         price = request.data.get('price')
@@ -127,7 +127,7 @@ class ProductListAPIView(APIView):
 
     def get(self,request):
         productData = Product.objects.all()
-        print(productData)
+        # print(productData)
         productLatest = Product.objects.order_by('id')[:4]
         electronicProducts = Product.objects.filter(category=1)
 
@@ -241,7 +241,6 @@ class CartAPIView(APIView):
         # print(request.user)
         cartData = Cart.objects.all()
         if cartData:
-            serializer = CartSerializer(cartData, many=True)
             product_data = [{
                 'name': product.name,
                 'quantity': product.quantity,
@@ -249,11 +248,13 @@ class CartAPIView(APIView):
                 'price': product.price,
                 'total': product.total,
                 'image': product.image,
-                'user': product.user.name  # Assuming 'name' is the field in the UserDetails model
+                'id': product.user.name  # Assuming 'name' is the field in the UserDetails model
             } for product in cartData]
+            # json_data =product_data, ensure_ascii=False.encode('utf8')
+            
+            serializer = CartSerializer(cartData, many=True)
 
-            # print(serializer.data)
-            return Response(serializer.data,status=status.HTTP_200_OK)
+            return Response(serializer.data)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
@@ -265,6 +266,26 @@ class CartAPIView(APIView):
             return Response({'success':'Product deleted successfully'},status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+# Uers list in admin panel
+@permission_classes([IsAuthenticated])
+class userListAPIView(APIView):
+    serializer_class = UserDetailsSerializer
+    permission_classes = (IsAuthenticated)
+    def get(self,request):
+        userData = UserDetails.objects.all()
+        if userData:
+            serializer = UserDetailsSerializer(userData, many=True)
+            return Response(serializer.data,status=status.HTTP_200_OK)
+        else:
+            print("------------ No existing users")
+
+            return Response(status=status.HTTP_404_NOT_FOUND)
+            
+
+
+
     
 
             
